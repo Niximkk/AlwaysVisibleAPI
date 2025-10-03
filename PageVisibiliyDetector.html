@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Saída da Página</title>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(30, 144, 255, 0.1) 0%, transparent 50%);
+            animation: pulse 15s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .container {
+            background: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #a78bfa 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .info {
+            background: rgba(102, 126, 234, 0.08);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border-left: 3px solid #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .info h3 {
+            color: #a78bfa;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info ul li {
+            color: #c4b5fd;
+            margin-bottom: 8px;
+            padding-left: 24px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .info ul li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .log {
+            background: rgba(10, 10, 15, 0.8);
+            color: #00ff88;
+            padding: 20px;
+            border-radius: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .log::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 4px;
+        }
+
+        .log::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.7);
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        .log-entry:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .timestamp {
+            color: #fbbf24;
+            margin-right: 10px;
+            font-weight: 500;
+        }
+
+        .event-type {
+            color: #60a5fa;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .alert {
+            color: #f87171;
+            animation: alertPulse 1s ease-in-out;
+        }
+
+        @keyframes alertPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .status {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .button {
+            display: inline-block;
+            margin: 10px 5px 0 0;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            transition: left 0.5s;
+        }
+
+        .button:hover::before {
+            left: 100%;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .start-content {
+            text-align: center;
+            padding: 60px;
+            animation: floatIn 1s ease-out;
+        }
+
+        @keyframes floatIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .start-title {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #a78bfa 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+
+        .start-subtitle {
+            color: #c4b5fd;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="start-screen" id="startScreen">
+        <div class="start-content">
+            <div class="start-title">Start Visibility Test</div>
+            <div class="start-subtitle">Click anywhere to begin</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>👁️‍🗨️ Page visibiliy detector</h1>
+        
+        <div class="status" id="status">✅ You are in the page!</div>
+
+        <div class="info">
+            <h3>Supported events:</h3>
+            <ul>
+                <li>Switch tab</li>
+                <li>Minimize window</li>
+                <li>Move mouse outside the page</li>
+                <li>Back/Forward in history</li>
+                <li>Loss of page focus</li>
+                <li>Page becomes hidden</li>
+                <li>Exit fullscreen mode</li>
+            </ul>
+            <button class="button" onclick="enterFullscreen()">Enter fullscreen</button>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const logContainer = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+        const startScreen = document.getElementById('startScreen');
+        let isOnPage = true;
+        let isFullscreen = false;
+        let audioContext = null;
+        let isInitialized = false;
+
+        startScreen.addEventListener('click', function() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            startScreen.classList.add('hidden');
+            isInitialized = true;
+            
+            addLog('INIT', 'Detector initialized');
+        });
+
+        function playBeep() {
+            if (!isInitialized || !audioContext) return;
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch(e) {}
+        }
+
+        function addLog(eventType, message, isAlert = false) {
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (isAlert ? ' alert' : '');
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span><span class="event-type">${eventType}</span>${message}`;
+            logContainer.insertBefore(entry, logContainer.firstChild);
+        }
+
+        function updateStatus(onPage) {
+            if (onPage) {
+                statusDiv.textContent = '✅ You are in the page!';
+                statusDiv.style.background = 'rgba(16, 185, 129, 0.15)';
+                statusDiv.style.color = '#10b981';
+            } else {
+                statusDiv.textContent = '⚠️ You left the page!';
+                statusDiv.style.background = 'rgba(239, 68, 68, 0.15)';
+                statusDiv.style.color = '#ef4444';
+            }
+        }
+
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function handleFullscreenChange() {
+            const isNowFullscreen = !!(document.fullscreenElement || 
+                                      document.webkitFullscreenElement || 
+                                      document.mozFullScreenElement || 
+                                      document.msFullscreenElement);
+            
+            if (isNowFullscreen && !isFullscreen) {
+                isFullscreen = true;
+                addLog('FULLSCREEN', 'Entered fullscreen');
+            } else if (!isNowFullscreen && isFullscreen) {
+                isFullscreen = false;
+                addLog('FULLSCREEN', 'Left fullscreen', true);
+                playBeep();
+                updateStatus(false);
+                setTimeout(() => updateStatus(true), 3000);
+            }
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+        window.addEventListener('blur', function() {
+            addLog('BLUR', 'Left focus', true);
+            playBeep();
+            isOnPage = false;
+            updateStatus(false);
+        });
+
+        window.addEventListener('focus', function() {
+            addLog('FOCUS', 'Entered focus');
+            isOnPage = true;
+            updateStatus(true);
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                addLog('VISIBILITY', 'Page became hidden (switched tab or minimized)', true);
+                playBeep();
+                isOnPage = false;
+                updateStatus(false);
+            } else {
+                addLog('VISIBILITY', 'Page got visible again');
+                isOnPage = true;
+                updateStatus(true);
+            }
+        });
+
+        document.addEventListener('mouseleave', function(e) {
+            addLog('MOUSE', 'Mouse left the page', true);
+        });
+
+        document.addEventListener('mouseenter', function() {
+            addLog('MOUSE', 'Mouse returned to the page');
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            addLog('BEFOREUNLOAD', 'Attempt to leave the page detected', true);
+            playBeep();
+            e.preventDefault();
+            e.returnValue = '';
+            return 'Are you sure you want to leave?';
+        });
+
+        window.addEventListener('unload', function() {
+            addLog('UNLOAD', 'Page is being unloaded', true);
+        });
+
+        window.addEventListener('popstate', function() {
+            addLog('POPSTATE', 'History navigation detected', true);
+        });
+
+        window.addEventListener('pagehide', function() {
+            addLog('PAGEHIDE', 'Page is being hidden', true);
+            playBeep();
+        });
+
+        window.addEventListener('pageshow', function() {
+            addLog('PAGESHOW', 'Page is being shown');
+        });
+
+        document.addEventListener('focusout', function() {
+            addLog('FOCUSOUT', 'Document lost focus', true);
+        });
+
+        document.addEventListener('focusin', function() {
+            addLog('FOCUSIN', 'Document gained focus');
+        });
+
+        setInterval(function() {
+            if (!document.hasFocus() && isOnPage) {
+            addLog('MONITOR', 'Focus loss detected by monitor', true);
+            playBeep();
+            isOnPage = false;
+            updateStatus(false);
+            } else if (document.hasFocus() && !isOnPage) {
+            isOnPage = true;
+            updateStatus(true);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
